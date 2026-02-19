@@ -1,40 +1,36 @@
-# -----------------------------
-# Build Stage
-# -----------------------------
+# Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+
+# Set working directory inside container
 WORKDIR /src
 
 # Copy the solution file
 COPY UserManagement/UserManagement.sln ./
 
-# Copy project files
+# Copy all project files
 COPY UserManagement/UserManagement.API/*.csproj ./UserManagement.API/
 COPY UserManagement/UserManagement.Application/*.csproj ./UserManagement.Application/
 COPY UserManagement/UserManagement.Infrastructure/*.csproj ./UserManagement.Infrastructure/
 
-# Restore dependencies
+# Restore NuGet packages
 RUN dotnet restore
 
-# Copy the remaining source code
+# Copy the rest of the source code
 COPY UserManagement/UserManagement.API/. ./UserManagement.API/
 COPY UserManagement/UserManagement.Application/. ./UserManagement.Application/
 COPY UserManagement/UserManagement.Infrastructure/. ./UserManagement.Infrastructure/
 
 # Build the app
-WORKDIR /src/UserManagement.API
 RUN dotnet publish -c Release -o /app/publish
 
-# -----------------------------
-# Runtime Stage
-# -----------------------------
+# Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
+COPY --from=build /app/publish .
 
-# Copy the published output from build stage
-COPY --from=build /app/publish ./
-
-# Expose the port your app listens on
+# Expose port (optional, depending on your app)
 EXPOSE 80
+EXPOSE 443
 
-# Start the app
+# Run the application
 ENTRYPOINT ["dotnet", "UserManagement.API.dll"]
