@@ -1,29 +1,40 @@
+# -----------------------------
+# Build Stage
+# -----------------------------
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy the solution file
-COPY UserManagement.sln ./
+COPY UserManagement/UserManagement.sln ./
 
-# Copy all projects
-COPY UserManagement.API/*.csproj ./UserManagement.API/
-COPY UserManagement.Application/*.csproj ./UserManagement.Application/
-COPY UserManagement.Infrastructure/*.csproj ./UserManagement.Infrastructure/
+# Copy project files
+COPY UserManagement/UserManagement.API/*.csproj ./UserManagement.API/
+COPY UserManagement/UserManagement.Application/*.csproj ./UserManagement.Application/
+COPY UserManagement/UserManagement.Infrastructure/*.csproj ./UserManagement.Infrastructure/
 
-# Restore solution
+# Restore dependencies
 RUN dotnet restore
 
-# Copy all source files
-COPY . .
+# Copy the remaining source code
+COPY UserManagement/UserManagement.API/. ./UserManagement.API/
+COPY UserManagement/UserManagement.Application/. ./UserManagement.Application/
+COPY UserManagement/UserManagement.Infrastructure/. ./UserManagement.Infrastructure/
 
-# Build
-RUN dotnet build -c Release --no-restore
+# Build the app
+WORKDIR /src/UserManagement.API
+RUN dotnet publish -c Release -o /app/publish
 
-# Publish
-RUN dotnet publish UserManagement.API/UserManagement.API.csproj -c Release -o /app --no-build
-
-# Runtime stage
+# -----------------------------
+# Runtime Stage
+# -----------------------------
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
-COPY --from=build /app .
+
+# Copy the published output from build stage
+COPY --from=build /app/publish ./
+
+# Expose the port your app listens on
 EXPOSE 80
+
+# Start the app
 ENTRYPOINT ["dotnet", "UserManagement.API.dll"]
