@@ -42,6 +42,12 @@ namespace UserManagement.API.Controllers
 
                 await _userService.CreateUserAsync(userDto);
 
+                Console.WriteLine("Webhook received");
+                Console.WriteLine($"Event: {githubEvent}");
+                Console.WriteLine($"Sender: {payload.Sender?.Login}");
+                Console.WriteLine($"Repo: {payload.Repository?.FullName}");
+                Console.WriteLine($"Commit: {payload.HeadCommit?.Message}");
+
                 return Ok(new
                 {
                     message = "Push webhook received and user created successfully.",
