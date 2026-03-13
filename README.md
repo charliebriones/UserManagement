@@ -1,4 +1,4 @@
-# UserManagement
+# UserManagement-API-DotNet
 
 A sample **ASP.NET Core Web API** for managing users (CRUD) built with **Clean Architecture**, **Entity Framework Core**, and **SQL Server**. This project is designed as a portfolio-ready example with clear separation of concerns, DI, and API documentation via Swagger.
 
